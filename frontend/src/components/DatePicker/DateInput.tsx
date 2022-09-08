@@ -1,4 +1,10 @@
-import { KeyboardEventHandler, useCallback, useMemo, useRef } from 'react'
+import {
+  KeyboardEventHandler,
+  MouseEventHandler,
+  useCallback,
+  useMemo,
+  useRef,
+} from 'react'
 import FocusLock from 'react-focus-lock'
 import {
   Flex,
@@ -81,11 +87,19 @@ export const DateInput = forwardRef<DateInputProps, 'input'>(
     /**
      * Disable spacebar from opening native calendar
      */
-    const handlePreventOpenNativeCalendar: KeyboardEventHandler<HTMLInputElement> =
+    const handleKeyDownPreventOpenNativeCalendar: KeyboardEventHandler<HTMLInputElement> =
       useCallback((e) => {
         if (e.key === ' ') {
           e.preventDefault()
         }
+      }, [])
+
+    /**
+     * Disable click from opening native calendar
+     */
+    const handleClickPreventOpenNativeCalendar: MouseEventHandler<HTMLInputElement> =
+      useCallback((e) => {
+        e.preventDefault()
       }, [])
 
     return (
@@ -101,7 +115,8 @@ export const DateInput = forwardRef<DateInputProps, 'input'>(
                 <Input
                   zIndex={1}
                   type="date"
-                  onKeyDown={handlePreventOpenNativeCalendar}
+                  onClick={handleClickPreventOpenNativeCalendar}
+                  onKeyDown={handleKeyDownPreventOpenNativeCalendar}
                   sx={{
                     borderRadius: '4px 0 0 4px',
                     // Chrome displays a default calendar icon, which we want to hide
