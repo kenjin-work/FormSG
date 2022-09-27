@@ -45,9 +45,7 @@ export const CreatePage = (): JSX.Element => {
   const [hasAdminSeenFeatureTour, setHasAdminSeenFeatureTour] =
     useLocalStorage<boolean>(localStorageFeatureTourKey)
 
-  const shouldFeatureTourRender = useMemo(() => {
-    return !isLoading && !hasAdminSeenFeatureTour
-  }, [isLoading, hasAdminSeenFeatureTour])
+  const shouldFeatureTourRender = false
 
   const isDirty = useDirtyFieldStore(isDirtySelector)
 
