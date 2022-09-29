@@ -32,7 +32,7 @@ export const getFieldCreationMeta = (fieldType: BasicField): FieldCreateDto => {
     description: '',
     disabled: false,
     required: true,
-    title: BASICFIELD_TO_DRAWER_META[fieldType].label,
+    title: 'Type your question here',
   }
 
   switch (fieldType) {
@@ -151,7 +151,7 @@ export const getFieldCreationMeta = (fieldType: BasicField): FieldCreateDto => {
       return {
         fieldType,
         ...baseMeta,
-        fieldOptions: ['Option 1'],
+        fieldOptions: ['Option 1', 'Option 2'],
         othersRadioButton: false,
       }
     }
