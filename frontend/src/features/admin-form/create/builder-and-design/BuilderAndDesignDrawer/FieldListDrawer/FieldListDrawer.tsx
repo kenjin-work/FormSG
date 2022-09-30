@@ -88,11 +88,11 @@ const BasicFieldPanelContent = () => {
 
   return (
     <>
-      <Droppable isDropDisabled droppableId={CREATE_PAGE_DROP_ID}>
+      <Droppable isDropDisabled droppableId={CREATE_FIELD_DROP_ID}>
         {(provided) => (
           <Box ref={provided.innerRef} {...provided.droppableProps}>
-            <FieldSection label="Page">
-              {CREATE_PAGE_FIELDS_ORDERED.map((fieldType, index) => (
+            <FieldSection label="Fields">
+              {CREATE_FIELD_FIELDS_ORDERED.map((fieldType, index) => (
                 <DraggableBasicFieldListOption
                   index={index}
                   isDisabled={isLoading}
@@ -105,11 +105,11 @@ const BasicFieldPanelContent = () => {
           </Box>
         )}
       </Droppable>
-      <Droppable isDropDisabled droppableId={CREATE_FIELD_DROP_ID}>
+      <Droppable isDropDisabled droppableId={CREATE_PAGE_DROP_ID}>
         {(provided) => (
           <Box ref={provided.innerRef} {...provided.droppableProps}>
-            <FieldSection label="Fields">
-              {CREATE_FIELD_FIELDS_ORDERED.map((fieldType, index) => (
+            <FieldSection label="Page">
+              {CREATE_PAGE_FIELDS_ORDERED.map((fieldType, index) => (
                 <DraggableBasicFieldListOption
                   index={index}
                   isDisabled={isLoading}
