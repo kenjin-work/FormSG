@@ -13,7 +13,10 @@ const {
 angular.module('forms').service('FormFields', [FormFields])
 
 function FormFields() {
-  this.basicTypes = basicTypes
+  // TODO: Unhide Country field once Angular is decommissioned
+  this.basicTypes = basicTypes.filter(
+    (type) => type.name !== BasicField.Country,
+  )
   this.myInfoTypes = myInfoTypes
   this.customValFields = ['textarea', 'textfield', 'number']
 
