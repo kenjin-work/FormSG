@@ -1,12 +1,26 @@
 import { errors, isCelebrateError } from 'celebrate'
 import { ErrorRequestHandler, RequestHandler } from 'express'
+import { HttpError, isHttpError } from 'http-errors'
 import { StatusCodes } from 'http-status-codes'
 import get from 'lodash/get'
+import { types } from 'util'
 
 import { createLoggerWithLabel } from '../../config/logger'
 
 const logger = createLoggerWithLabel(module)
 const celebrateErrorHandler = errors()
+
+const isBodyParserError = (
+  err: unknown,
+): err is HttpError & { type: string } => {
+  return isHttpError(err) && 'type' in err
+}
+
+const isHTTPLikeError = (
+  err: unknown,
+): err is Error & { statusCode: number } => {
+  return types.isNativeError(err) && 'statusCode' in err
+}
 
 const errorHandlerMiddlewares = (): (
   | ErrorRequestHandler
@@ -30,14 +44,19 @@ const errorHandlerMiddlewares = (): (
     } else {
       const genericErrorMessage =
         'Apologies, something odd happened. Please try again later!'
+
+      const log_meta = {
+        action: 'genericErrorHandlerMiddleware',
+        // formId is only present for Joi validated routes that require it
+        formId: get(req, 'form._id', null),
+      }
+
       // Error page
       if (isCelebrateError(err)) {
         logger.error({
           message: 'Joi validation error',
           meta: {
-            action: 'genericErrorHandlerMiddleware',
-            // formId is only present for Joi validated routes that require it
-            formId: get(req, 'form._id', null),
+            ...log_meta,
             details: Object.fromEntries(err.details),
           },
           error: err,
@@ -45,10 +64,48 @@ const errorHandlerMiddlewares = (): (
         return celebrateErrorHandler(err, req, res, next)
       }
 
+      if (isBodyParserError(err)) {
+        logger.error({
+          message: 'Body parser error',
+          meta: {
+            ...log_meta,
+            details: {
+              type: err.type,
+              message: err.message,
+            },
+          },
+          error: err,
+        })
+        if (err.expose) {
+          return res
+            .status(err.status)
+            .json({ message: err.message ?? genericErrorMessage })
+        }
+        return res.status(err.status).json({ message: genericErrorMessage })
+      }
+
+      if (isHTTPLikeError(err)) {
+        logger.error({
+          message: `HTTP Error ${err.statusCode}`,
+          meta: {
+            ...log_meta,
+            details: {
+              message: err.message,
+            },
+          },
+          error: err,
+        })
+        return res.status(err.statusCode).json({ message: err.message })
+      }
+
+      // Unknown errors
       logger.error({
         message: 'Unknown error',
         meta: {
-          action: 'genericErrorHandlerMiddleware',
+          ...log_meta,
+          details: {
+            message: err.message,
+          },
         },
         error: err,
       })

@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useMemo, useRef } from 'react'
+import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Draggable } from 'react-beautiful-dnd'
 import { FormProvider, useForm } from 'react-hook-form'
 import { BiCog, BiDuplicate, BiGridHorizontal, BiTrash } from 'react-icons/bi'
@@ -43,6 +43,8 @@ import {
   UenField,
   YesNoField,
 } from '~templates/Field'
+import { EmailFieldInput } from '~templates/Field/Email'
+import { MobileFieldInput } from '~templates/Field/Mobile'
 import { createTableRow } from '~templates/Field/Table/utils/createRow'
 
 import { adminFormKeys } from '~features/admin-form/common/queries'
@@ -64,6 +66,7 @@ import {
   setStateSelector,
   useDesignStore,
 } from '../../useDesignStore'
+import { isDirtySelector, useDirtyFieldStore } from '../../useDirtyFieldStore'
 import {
   FieldBuilderState,
   setToInactiveSelector,
@@ -75,6 +78,7 @@ import { getAttachmentSizeLimit } from '../../utils/getAttachmentSizeLimit'
 import { useDesignColorTheme } from '../../utils/useDesignColorTheme'
 
 import { SectionFieldRow } from './SectionFieldRow'
+import { VerifiableFieldBuilderContainer } from './VerifiableFieldBuilderContainer'
 
 export interface FieldRowContainerProps {
   field: FormFieldDto
@@ -103,6 +107,7 @@ export const FieldRowContainer = ({
     ),
   )
 
+  const isDirty = useDirtyFieldStore(isDirtySelector)
   const toast = useToast({ status: 'danger', isClosable: true })
 
   const setDesignState = useDesignStore(setStateSelector)
@@ -163,16 +168,20 @@ export const FieldRowContainer = ({
   }, [isActive])
 
   const handleFieldClick = useCallback(() => {
-    if (!isActive) {
-      updateEditState(field)
-      setDesignState(DesignState.Inactive)
-      if (!isMobile) {
-        // Do not open builder if in mobile so user can view active state without
-        // drawer blocking the view.
-        handleBuilderClick()
-      }
+    if (isActive) return
+
+    if (isDirty) {
+      return updateEditState(field, true)
+    }
+    updateEditState(field)
+    setDesignState(DesignState.Inactive)
+    if (!isMobile) {
+      // Do not open builder if in mobile so user can view active state without
+      // drawer blocking the view.
+      handleBuilderClick(false)
     }
   }, [
+    isDirty,
     isActive,
     updateEditState,
     field,
@@ -193,7 +202,7 @@ export const FieldRowContainer = ({
 
   const handleEditFieldClick = useCallback(() => {
     if (isMobile) {
-      handleBuilderClick()
+      handleBuilderClick(false)
     }
   }, [handleBuilderClick, isMobile])
 
@@ -237,14 +246,19 @@ export const FieldRowContainer = ({
     [duplicateFieldMutation, deleteFieldMutation],
   )
 
+  const isDragDisabled = useMemo(() => {
+    return (
+      !isActive ||
+      isDirty ||
+      !!numFormFieldMutations ||
+      stateData.state === FieldBuilderState.CreatingField
+    )
+  }, [isActive, isDirty, numFormFieldMutations, stateData.state])
+
   return (
     <Draggable
       index={index}
-      isDragDisabled={
-        !isActive ||
-        !!numFormFieldMutations ||
-        stateData.state === FieldBuilderState.CreatingField
-      }
+      isDragDisabled={isDragDisabled}
       disableInteractiveElementBlocking
       draggableId={field._id}
     >
@@ -303,17 +317,21 @@ export const FieldRowContainer = ({
                       : '0 0 0 2px var(--chakra-colors-neutral-500)',
                   }}
                 >
-                  <Icon
-                    transition="color 0.2s ease"
-                    _hover={{
-                      color: 'secondary.300',
-                    }}
-                    color={
-                      snapshot.isDragging ? 'secondary.300' : 'secondary.200'
-                    }
-                    as={BiGridHorizontal}
-                    fontSize="1.5rem"
-                  />
+                  {stateData.state === FieldBuilderState.EditingField ? (
+                    <Icon
+                      transition="color 0.2s ease"
+                      _hover={{
+                        color: 'secondary.300',
+                      }}
+                      color={
+                        snapshot.isDragging ? 'secondary.300' : 'secondary.200'
+                      }
+                      as={BiGridHorizontal}
+                      fontSize="1.5rem"
+                    />
+                  ) : (
+                    <Box h="1.125rem"></Box>
+                  )}
                 </chakra.button>
               </Fade>
               <Box
@@ -324,7 +342,7 @@ export const FieldRowContainer = ({
                 opacity={isActive || !isHiddenByLogic ? '100%' : '30%'}
               >
                 <FormProvider {...formMethods}>
-                  <MemoFieldRow
+                  <FieldRow
                     field={field}
                     colorTheme={colorTheme}
                     showMyInfoBadge={isMyInfoField}
@@ -355,23 +373,27 @@ export const FieldRowContainer = ({
                     {
                       // Fields which are not yet created cannot be duplicated
                       stateData.state !== FieldBuilderState.CreatingField && (
-                        <IconButton
-                          aria-label="Duplicate field"
-                          isDisabled={isAnyMutationLoading}
-                          onClick={handleDuplicateClick}
-                          isLoading={duplicateFieldMutation.isLoading}
-                          icon={<BiDuplicate fontSize="1.25rem" />}
-                        />
+                        <Tooltip label="Duplicate field">
+                          <IconButton
+                            aria-label="Duplicate field"
+                            isDisabled={isAnyMutationLoading}
+                            onClick={handleDuplicateClick}
+                            isLoading={duplicateFieldMutation.isLoading}
+                            icon={<BiDuplicate fontSize="1.25rem" />}
+                          />
+                        </Tooltip>
                       )
                     }
-                    <IconButton
-                      colorScheme="danger"
-                      aria-label="Delete field"
-                      icon={<BiTrash fontSize="1.25rem" />}
-                      onClick={handleDeleteClick}
-                      isLoading={deleteFieldMutation.isLoading}
-                      isDisabled={isAnyMutationLoading}
-                    />
+                    <Tooltip label="Delete field">
+                      <IconButton
+                        colorScheme="danger"
+                        aria-label="Delete field"
+                        icon={<BiTrash fontSize="1.25rem" />}
+                        onClick={handleDeleteClick}
+                        isLoading={deleteFieldMutation.isLoading}
+                        isDisabled={isAnyMutationLoading}
+                      />
+                    </Tooltip>
                   </ButtonGroup>
                 </Flex>
               </Collapse>
@@ -383,13 +405,13 @@ export const FieldRowContainer = ({
   )
 }
 
-type MemoFieldRowProps = {
+type FieldRowProps = {
   field: FormFieldDto
   colorTheme?: FormColorTheme
   showMyInfoBadge?: boolean
 }
 
-const MemoFieldRow = memo(({ field, ...rest }: MemoFieldRowProps) => {
+const FieldRow = ({ field, ...rest }: FieldRowProps) => {
   switch (field.fieldType) {
     case BasicField.Section:
       return <SectionFieldRow field={field} {...rest} />
@@ -402,11 +424,23 @@ const MemoFieldRow = memo(({ field, ...rest }: MemoFieldRowProps) => {
     case BasicField.Checkbox:
       return <CheckboxField schema={field} {...rest} />
     case BasicField.Mobile:
-      return <MobileField schema={field} {...rest} />
+      return field.isVerifiable ? (
+        <VerifiableFieldBuilderContainer schema={field} {...rest}>
+          <MobileFieldInput schema={field} />
+        </VerifiableFieldBuilderContainer>
+      ) : (
+        <MobileField schema={field} {...rest} />
+      )
     case BasicField.HomeNo:
       return <HomeNoField schema={field} {...rest} />
     case BasicField.Email:
-      return <EmailField schema={field} {...rest} />
+      return field.isVerifiable ? (
+        <VerifiableFieldBuilderContainer schema={field} {...rest}>
+          <EmailFieldInput schema={field} />
+        </VerifiableFieldBuilderContainer>
+      ) : (
+        <EmailField schema={field} {...rest} />
+      )
     case BasicField.Nric:
       return <NricField schema={field} {...rest} />
     case BasicField.Number:
@@ -434,4 +468,4 @@ const MemoFieldRow = memo(({ field, ...rest }: MemoFieldRowProps) => {
     case BasicField.Table:
       return <TableField schema={field} {...rest} />
   }
-})
+}

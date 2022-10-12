@@ -42,12 +42,8 @@ export const OtpForm = ({
   return (
     <form onSubmit={handleSubmit(onSubmitForm)}>
       <FormControl isInvalid={!!formState.errors.otp} mb="2.5rem">
-        <FormLabel
-          isRequired
-          htmlFor="otp"
-          description={`Enter OTP sent to ${email}`}
-        >
-          One-time password
+        <FormLabel isRequired htmlFor="otp">
+          {`Enter OTP sent to ${email.toLowerCase()}`}
         </FormLabel>
         <Input
           type="text"
@@ -70,7 +66,7 @@ export const OtpForm = ({
       </FormControl>
       <Stack
         direction={{ base: 'column', lg: 'row' }}
-        spacing={{ base: '1.5rem', lg: '2.5rem' }}
+        spacing="1rem"
         align="center"
       >
         <Button

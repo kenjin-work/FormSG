@@ -65,8 +65,10 @@ export const useFreeSmsQuota = () => {
   const { formId } = useParams()
   if (!formId) throw new Error('No formId provided to useFreeSmsQuota')
 
-  return useQuery(adminFormKeys.freeSmsCount(formId), () =>
-    getFreeSmsQuota(formId),
+  return useQuery(
+    adminFormKeys.freeSmsCount(formId),
+    () => getFreeSmsQuota(formId),
+    { staleTime: 0 },
   )
 }
 
@@ -125,6 +127,8 @@ export const usePreviewForm = (
     adminFormKeys.previewForm(formId),
     () => previewForm(formId),
     {
+      // Treat preview form as static on load.
+      staleTime: Infinity,
       enabled: FORMID_REGEX.test(formId) && enabled,
     },
   )

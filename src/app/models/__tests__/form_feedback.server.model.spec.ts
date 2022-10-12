@@ -17,6 +17,7 @@ describe('form_feedback.server.model', () => {
   describe('Schema', () => {
     const DEFAULT_PARAMS: IFormFeedback = {
       formId: new ObjectId(),
+      submissionId: new ObjectId(),
       rating: 5,
       comment: 'feedback comment',
     }
@@ -58,7 +59,7 @@ describe('form_feedback.server.model', () => {
       ).save()
 
       // Assert
-      await expect(actualPromise).rejects.toThrowError(
+      await expect(actualPromise).rejects.toThrow(
         mongoose.Error.ValidationError,
       )
     })
@@ -70,7 +71,19 @@ describe('form_feedback.server.model', () => {
       ).save()
 
       // Assert
-      await expect(actualPromise).rejects.toThrowError(
+      await expect(actualPromise).rejects.toThrow(
+        mongoose.Error.ValidationError,
+      )
+    })
+
+    it('should throw validation error when submissionId param is missing', async () => {
+      // Act
+      const actualPromise = new FeedbackModel(
+        omit(DEFAULT_PARAMS, 'submissionId'),
+      ).save()
+
+      // Assert
+      await expect(actualPromise).rejects.toThrow(
         mongoose.Error.ValidationError,
       )
     })
@@ -82,8 +95,10 @@ describe('form_feedback.server.model', () => {
         // Arrange
         // Create document
         const mockFormId = new ObjectId()
+        const mockSubmissionId = new ObjectId()
         const mockFeedbackDoc = await FeedbackModel.create({
           formId: mockFormId,
+          submissionId: mockSubmissionId,
           rating: 5,
           comment: 'feedback comment',
         })

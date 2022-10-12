@@ -9,9 +9,11 @@ import { useIsMobile } from '~hooks/useIsMobile'
 import { PREVIEW_MOCK_UINFIN } from '~features/admin-form/preview/constants'
 import { useEnv } from '~features/env/queries'
 import { FormInstructions } from '~features/public-form/components/FormInstructions/FormInstructions'
-import { FormBannerLogo } from '~features/public-form/components/FormStartPage/FormBannerLogo'
+import {
+  FormBannerLogo,
+  useFormBannerLogo,
+} from '~features/public-form/components/FormLogo'
 import { FormHeader } from '~features/public-form/components/FormStartPage/FormHeader'
-import { useFormBannerLogo } from '~features/public-form/components/FormStartPage/useFormBannerLogo'
 import { useFormHeader } from '~features/public-form/components/FormStartPage/useFormHeader'
 
 import { useCreatePageSidebar } from '../../common/CreatePageSidebarContext'
@@ -24,6 +26,7 @@ import {
   stateSelector,
   useDesignStore,
 } from '../useDesignStore'
+import { isDirtySelector, useDirtyFieldStore } from '../useDirtyFieldStore'
 import {
   setToInactiveSelector,
   useFieldBuilderStore,
@@ -31,8 +34,10 @@ import {
 
 export const StartPageView = () => {
   const isMobile = useIsMobile()
-  const { data: form } = useCreateTabForm()
+  const { data: form, isLoading } = useCreateTabForm()
   const setToInactive = useFieldBuilderStore(setToInactiveSelector)
+  const isDirty = useDirtyFieldStore(isDirtySelector)
+
   const { designState, startPageData, customLogoMeta, setDesignState } =
     useDesignStore(
       useCallback(
@@ -90,6 +95,7 @@ export const StartPageView = () => {
     logoBucketUrl,
     logo: startPage?.logo,
     agency: form?.admin.agency,
+    colorTheme: form?.startPage.colorTheme,
   })
   const formHeaderProps = useFormHeader({ startPage, hover: hoverStartPage })
 
@@ -107,20 +113,44 @@ export const StartPageView = () => {
 
   const { handleDesignClick } = useCreatePageSidebar()
 
+  const isDirtyAndDesignInactive = useMemo(
+    () => isDirty && designState === DesignState.Inactive,
+    [designState, isDirty],
+  )
+
   const handleHeaderClick = useCallback(() => {
+    if (isDirtyAndDesignInactive) {
+      return setDesignState(DesignState.EditingHeader, true)
+    }
+
     setDesignState(DesignState.EditingHeader)
     setToInactive()
-    handleDesignClick()
-  }, [handleDesignClick, setDesignState, setToInactive])
+    handleDesignClick(false)
+  }, [
+    handleDesignClick,
+    isDirtyAndDesignInactive,
+    setDesignState,
+    setToInactive,
+  ])
 
   const handleInstructionsClick = useCallback(() => {
+    if (isDirtyAndDesignInactive) {
+      return setDesignState(DesignState.EditingInstructions, true)
+    }
+
     setDesignState(DesignState.EditingInstructions)
     setToInactive()
-    if (!isMobile) handleDesignClick()
-  }, [handleDesignClick, isMobile, setDesignState, setToInactive])
+    if (!isMobile) handleDesignClick(false)
+  }, [
+    handleDesignClick,
+    isDirtyAndDesignInactive,
+    isMobile,
+    setDesignState,
+    setToInactive,
+  ])
 
   const handleEditInstructionsClick = useCallback(() => {
-    if (isMobile) handleDesignClick()
+    if (isMobile) handleDesignClick(false)
   }, [handleDesignClick, isMobile])
 
   const headerWrapperEditProps = useMemo(() => {
@@ -147,6 +177,8 @@ export const StartPageView = () => {
         ref={headerRef}
       >
         <FormBannerLogo
+          isLoading={isLoading}
+          onLogout={undefined}
           logoImgSrc={
             startPageData?.logo.state === FormLogoState.Custom
               ? startPageData.attachment.srcUrl // manual override to preview custom logo

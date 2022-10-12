@@ -154,6 +154,11 @@ export const EditConditionBlock = ({
       case BasicField.YesNo:
         return ['Yes', 'No']
       case BasicField.Radio:
+        if (mappedField.othersRadioButton) {
+          // 'Others' does not show up in fieldOptions
+          return mappedField.fieldOptions.concat('Others')
+        }
+        return mappedField.fieldOptions
       case BasicField.Dropdown:
         return mappedField.fieldOptions
       case BasicField.Rating:
@@ -326,7 +331,7 @@ export const EditConditionBlock = ({
           <BlockLabelText id={`${name}.state-label`} htmlFor={`${name}.state`}>
             IS
           </BlockLabelText>
-          <Flex flexDir="column" flex={1} as="fieldset">
+          <Flex flexDir="column" flex={1} as="fieldset" minW={0}>
             <VisuallyHidden as="legend">Logic criteria</VisuallyHidden>
             <Stack
               direction={{ base: 'column', md: 'row' }}

@@ -6,7 +6,13 @@ import { MyInfoField } from '~shared/types'
 import { SINGPASS_FAQ } from '~constants/links'
 import Link from '~components/Link'
 
-import { DrawerContentContainer } from '../common/DrawerContentContainer'
+import {
+  FieldBuilderState,
+  fieldBuilderStateSelector,
+  useFieldBuilderStore,
+} from '~features/admin-form/create/builder-and-design/useFieldBuilderStore'
+
+import { CreatePageDrawerContentContainer } from '../../../../../common'
 import { FormFieldDrawerActions } from '../common/FormFieldDrawerActions'
 import { EditFieldProps } from '../common/types'
 import { useEditFieldForm } from '../common/useEditFieldForm'
@@ -27,6 +33,7 @@ type EditMyInfoProps = EditFieldProps<MyInfoField>
 
 export const EditMyInfo = ({ field }: EditMyInfoProps): JSX.Element => {
   const extendedField = extendWithMyInfo(field)
+  const fieldBuilderState = useFieldBuilderStore(fieldBuilderStateSelector)
   const { buttonText, handleUpdateField, isLoading, handleCancel } =
     useEditFieldForm<EditMyInfoProps, MyInfoField>({
       field,
@@ -38,7 +45,7 @@ export const EditMyInfo = ({ field }: EditMyInfoProps): JSX.Element => {
     })
 
   return (
-    <DrawerContentContainer>
+    <CreatePageDrawerContentContainer>
       <VStack align="flex-start">
         <Text textStyle="subhead-1">Data Source</Text>
         {extendedField.dataSource.map((dataSource, idx) => (
@@ -77,12 +84,14 @@ export const EditMyInfo = ({ field }: EditMyInfoProps): JSX.Element => {
         <Text textStyle="subhead-1">Field details</Text>
         <Text>{extendedField.details}</Text>
       </VStack>
-      <FormFieldDrawerActions
-        isLoading={isLoading}
-        buttonText={buttonText}
-        handleClick={handleUpdateField}
-        handleCancel={handleCancel}
-      />
-    </DrawerContentContainer>
+      {fieldBuilderState === FieldBuilderState.CreatingField && (
+        <FormFieldDrawerActions
+          isLoading={isLoading}
+          buttonText={buttonText}
+          handleClick={handleUpdateField}
+          handleCancel={handleCancel}
+        />
+      )}
+    </CreatePageDrawerContentContainer>
   )
 }

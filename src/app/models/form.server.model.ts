@@ -324,7 +324,7 @@ const compileFormModel = (db: Mongoose): IFormModel => {
         buttonLink: String,
         buttonText: {
           type: String,
-          default: 'Submit another form',
+          default: 'Submit another response',
         },
       },
 

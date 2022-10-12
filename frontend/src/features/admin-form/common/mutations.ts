@@ -10,7 +10,7 @@ import {
   StartPageUpdateDto,
 } from '~shared/types/form/form'
 
-import { ROOT_ROUTE } from '~constants/routes'
+import { DASHBOARD_ROUTE } from '~constants/routes'
 import { useToast } from '~hooks/useToast'
 import { HttpError } from '~services/ApiService'
 
@@ -18,11 +18,13 @@ import {
   SubmitEmailFormArgs,
   SubmitStorageFormArgs,
 } from '~features/public-form/PublicFormService'
+import { workspaceKeys } from '~features/workspace/queries'
 
 import {
   submitEmailModeFormPreview,
   submitStorageModeFormPreview,
 } from '../common/AdminViewFormService'
+import { downloadFormFeedback } from '../responses/FeedbackPage/FeedbackService'
 
 import { useCollaboratorWizard } from './components/CollaboratorModal/CollaboratorWizardContext'
 import { permissionsToRole } from './components/CollaboratorModal/utils'
@@ -42,6 +44,11 @@ export type MutateAddCollaboratorArgs = {
 export type MutateRemoveCollaboratorArgs = {
   permissionToRemove: FormPermission
   currentPermissions: FormPermissionsDto
+}
+
+export type DownloadFormFeedbackMutationArgs = {
+  formId: string
+  formTitle: string
 }
 
 enum FormCollaboratorAction {
@@ -120,31 +127,36 @@ export const useMutateCollaborators = () => {
     return defaultErrorMessage
   }
 
-  const getMappedErrorMessage = (
-    error: Error,
-    formCollaboratorAction: FormCollaboratorAction,
-    requestEmail?: string,
-  ): string => {
-    // check if error is an instance of HttpError to be able to access status code of error
-    if (error instanceof HttpError) {
-      let errorMessage
-      switch (error.code) {
-        case 422:
-          errorMessage = requestEmail
-            ? `${requestEmail} is not part of a whitelisted agency`
-            : `An unexpected error 422 happened`
-          break
-        case 400:
-          errorMessage = getMappedBadRequestErrorMessage(formCollaboratorAction)
-          break
-        default:
-          errorMessage = getMappedDefaultErrorMessage(formCollaboratorAction)
+  const getMappedErrorMessage = useCallback(
+    (
+      error: Error,
+      formCollaboratorAction: FormCollaboratorAction,
+      requestEmail?: string,
+    ): string => {
+      // check if error is an instance of HttpError to be able to access status code of error
+      if (error instanceof HttpError) {
+        let errorMessage
+        switch (error.code) {
+          case 422:
+            errorMessage = requestEmail
+              ? `${requestEmail} is not part of a whitelisted agency`
+              : `An unexpected error 422 happened`
+            break
+          case 400:
+            errorMessage = getMappedBadRequestErrorMessage(
+              formCollaboratorAction,
+            )
+            break
+          default:
+            errorMessage = getMappedDefaultErrorMessage(formCollaboratorAction)
+        }
+        return errorMessage
       }
-      return errorMessage
-    }
-    // if error is not of type HttpError return the error message encapsulated in Error object
-    return error.message
-  }
+      // if error is not of type HttpError return the error message encapsulated in Error object
+      return error.message
+    },
+    [],
+  )
 
   const handleSuccess = useCallback(
     ({
@@ -181,7 +193,7 @@ export const useMutateCollaborators = () => {
         status: 'danger',
       })
     },
-    [toast],
+    [getMappedErrorMessage, toast],
   )
 
   const mutateUpdateCollaborator = useMutation(
@@ -292,9 +304,12 @@ export const useMutateCollaborators = () => {
           description:
             'You have removed yourself as a collaborator from the form.',
         })
-        navigate(ROOT_ROUTE)
+
         // Remove all related queries from cache.
         queryClient.removeQueries(adminFormKeys.id(formId))
+        queryClient.invalidateQueries(workspaceKeys.all)
+
+        navigate(DASHBOARD_ROUTE)
       },
       onError: (error: Error) => {
         handleError(error, FormCollaboratorAction.REMOVE_SELF)
@@ -357,7 +372,7 @@ export const useMutateFormPage = () => {
           (oldData) => (oldData ? { ...oldData, endPage: newData } : undefined),
         )
         toast({
-          description: 'Updated Thank You page',
+          description: 'Updated Thank you page',
         })
       },
       onError: handleError,
@@ -387,4 +402,34 @@ export const usePreviewFormMutations = (formId: string) => {
     submitEmailModeFormMutation,
     submitStorageModeFormMutation,
   }
+}
+
+export const useFormFeedbackMutations = () => {
+  const toast = useToast({ status: 'success', isClosable: true })
+
+  const handleError = useCallback(
+    (error: Error) => {
+      toast.closeAll()
+      toast({
+        description: error.message,
+        status: 'danger',
+      })
+    },
+    [toast],
+  )
+
+  const downloadFormFeedbackMutation = useMutation(
+    ({ formId, formTitle }: DownloadFormFeedbackMutationArgs) =>
+      downloadFormFeedback(formId, formTitle),
+    {
+      onSuccess: () => {
+        toast({
+          description: 'Form feedback download started',
+        })
+      },
+      onError: handleError,
+    },
+  )
+
+  return { downloadFormFeedbackMutation }
 }

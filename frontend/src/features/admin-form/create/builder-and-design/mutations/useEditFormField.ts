@@ -12,15 +12,16 @@ import { adminFormKeys } from '~features/admin-form/common/queries'
 import { updateSingleFormField } from '../UpdateFormFieldService'
 import {
   FieldBuilderState,
-  stateDataSelector,
+  fieldBuilderStateSelector,
   useFieldBuilderStore,
 } from '../useFieldBuilderStore'
+import { getMutationErrorMessage } from '../utils/getMutationErrorMessage'
 
 export const useEditFormField = () => {
   const { formId } = useParams()
   if (!formId) throw new Error('No formId provided')
 
-  const stateData = useFieldBuilderStore(stateDataSelector)
+  const fieldBuilderState = useFieldBuilderStore(fieldBuilderStateSelector)
 
   const queryClient = useQueryClient()
   const toast = useToast({ status: 'success', isClosable: true })
@@ -29,7 +30,7 @@ export const useEditFormField = () => {
   const handleSuccess = useCallback(
     (newField: FormFieldDto) => {
       toast.closeAll()
-      if (stateData.state !== FieldBuilderState.EditingField) {
+      if (fieldBuilderState !== FieldBuilderState.EditingField) {
         toast({
           status: 'warning',
           description:
@@ -51,14 +52,14 @@ export const useEditFormField = () => {
         return oldForm
       })
     },
-    [adminFormKey, stateData, queryClient, toast],
+    [adminFormKey, fieldBuilderState, queryClient, toast],
   )
 
   const handleError = useCallback(
     (error: Error) => {
       toast.closeAll()
       toast({
-        description: error.message,
+        description: getMutationErrorMessage(error),
         status: 'danger',
       })
     },

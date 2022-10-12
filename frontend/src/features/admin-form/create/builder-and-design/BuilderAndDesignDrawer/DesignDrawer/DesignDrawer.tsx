@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo } from 'react'
 import {
   Controller,
   UnpackNestedValue,
@@ -14,7 +14,6 @@ import {
   Flex,
   FormControl,
   FormLabel,
-  Tabs,
   Text,
   Textarea,
 } from '@chakra-ui/react'
@@ -45,10 +44,14 @@ import {
   startPageDataSelector,
   stateSelector,
   useDesignStore,
-} from '../../useDesignStore'
-import { validateNumberInput } from '../../utils/validateNumberInput'
-import { CreatePageDrawerCloseButton } from '../CreatePageDrawerCloseButton'
-import { DrawerContentContainer } from '../EditFieldDrawer/edit-fieldtype/common/DrawerContentContainer'
+} from '../../../builder-and-design/useDesignStore'
+import {
+  setIsDirtySelector,
+  useDirtyFieldStore,
+} from '../../../builder-and-design/useDirtyFieldStore'
+import { validateNumberInput } from '../../../builder-and-design/utils/validateNumberInput'
+import { CreatePageDrawerContentContainer } from '../../../common'
+import { CreatePageDrawerCloseButton } from '../../../common/CreatePageDrawer/CreatePageDrawerCloseButton'
 import { FormFieldDrawerActions } from '../EditFieldDrawer/edit-fieldtype/common/FormFieldDrawerActions'
 import {
   UploadedImage,
@@ -86,6 +89,8 @@ export const DesignInput = (): JSX.Element | null => {
     ),
   )
 
+  const setIsDirty = useDirtyFieldStore(setIsDirtySelector)
+
   const setToEditingHeader = useCallback(
     () => setDesignState(DesignState.EditingHeader),
     [setDesignState],
@@ -97,7 +102,7 @@ export const DesignInput = (): JSX.Element | null => {
 
   const {
     register,
-    formState: { errors },
+    formState: { errors, isDirty },
     control,
     handleSubmit,
     clearErrors,
@@ -107,6 +112,15 @@ export const DesignInput = (): JSX.Element | null => {
     mode: 'onBlur',
     defaultValues: startPageData,
   })
+
+  // Update dirty state of builder so confirmation modal can be shown
+  useEffect(() => {
+    setIsDirty(isDirty)
+
+    return () => {
+      setIsDirty(false)
+    }
+  }, [isDirty, setIsDirty])
 
   const watchedInputs = useWatch({
     control: control,
@@ -122,8 +136,12 @@ export const DesignInput = (): JSX.Element | null => {
   ])
 
   // Focus on paragraph field if state is editing instructions
-  useEffect(() => {
-    if (designState === DesignState.EditingInstructions) setFocus('paragraph')
+  useLayoutEffect(() => {
+    if (designState === DesignState.EditingInstructions) {
+      // To guarantee focus is triggered even when focus is being set by
+      // something else before this effect runs.
+      setTimeout(() => setFocus('paragraph'), 80)
+    }
   }, [designState, setFocus])
 
   // Save design handlers
@@ -156,6 +174,8 @@ export const DesignInput = (): JSX.Element | null => {
     [uploadLogoMutation, customLogoMeta],
   )
 
+  const handleCloseDrawer = useCallback(() => handleClose(false), [handleClose])
+
   const handleUpdateDesign = handleSubmit(
     async (startPageData: FormStartPageInput) => {
       const { logo, attachment, estTimeTaken, ...rest } = startPageData
@@ -168,7 +188,7 @@ export const DesignInput = (): JSX.Element | null => {
             estTimeTaken: estTimeTakenTransformed,
             ...rest,
           },
-          { onSuccess: handleClose },
+          { onSuccess: handleCloseDrawer },
         )
       } else {
         const customLogoMeta = await handleUploadLogo(attachment)
@@ -178,7 +198,7 @@ export const DesignInput = (): JSX.Element | null => {
             estTimeTaken: estTimeTakenTransformed,
             ...rest,
           },
-          { onSuccess: handleClose },
+          { onSuccess: handleCloseDrawer },
         )
       }
     },
@@ -193,7 +213,7 @@ export const DesignInput = (): JSX.Element | null => {
   if (!startPageData) return null
 
   return (
-    <DrawerContentContainer>
+    <CreatePageDrawerContentContainer>
       <FormControl
         id="logo.state"
         isReadOnly={startPageMutation.isLoading}
@@ -348,10 +368,10 @@ export const DesignInput = (): JSX.Element | null => {
       <FormFieldDrawerActions
         isLoading={startPageMutation.isLoading}
         handleClick={handleClick}
-        handleCancel={handleClose}
+        handleCancel={handleCloseDrawer}
         buttonText="Save design"
       />
-    </DrawerContentContainer>
+    </CreatePageDrawerContentContainer>
   )
 }
 
@@ -411,17 +431,17 @@ export const DesignDrawer = ({
   if (!startPageData) return null
 
   return (
-    <Tabs pos="relative" h="100%" display="flex" flexDir="column">
+    <Flex pos="relative" h="100%" display="flex" flexDir="column">
       <Box pt="1rem" px="1.5rem" bg="white">
         <Flex justify="space-between">
           <Text textStyle="subhead-3" color="secondary.500" mb="1rem">
-            Design
+            Edit header and instructions
           </Text>
           <CreatePageDrawerCloseButton />
         </Flex>
         <Divider w="auto" mx="-1.5rem" />
       </Box>
       <DesignInput />
-    </Tabs>
+    </Flex>
   )
 }
