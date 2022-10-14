@@ -11,7 +11,7 @@ import * as dayjs from './utils/dayjs'
 import reportWebVitals from './reportWebVitals'
 import * as serviceWorker from './serviceWorker'
 
-if (process.env.NODE_ENV === 'test') {
+if (import.meta.env.NODE_ENV === 'test') {
   import('./mocks/msw/browser').then(({ worker }) => worker.start())
 }
 
@@ -27,14 +27,14 @@ function gtag(...args: unknown[]) {
   dataLayer.push(arguments)
 }
 gtag('js', new Date())
-gtag('config', process.env.REACT_APP_GA_TRACKING_ID || '')
+gtag('config', import.meta.env.VITE_GA_TRACKING_ID || '')
 window.gtag = gtag
 
 // Init Datadog RUM
 datadogRum.init({
-  applicationId: process.env.REACT_APP_DD_RUM_APP_ID || '',
-  clientToken: process.env.REACT_APP_DD_RUM_CLIENT_TOKEN || '',
-  env: process.env.REACT_APP_DD_RUM_ENV || '',
+  applicationId: import.meta.env.VITE_DD_RUM_APP_ID || '',
+  clientToken: import.meta.env.VITE_DD_RUM_CLIENT_TOKEN || '',
+  env: import.meta.env.VITE_DD_RUM_ENV || '',
   site: 'datadoghq.com',
   service: 'formsg-react',
 

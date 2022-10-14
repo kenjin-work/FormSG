@@ -3,7 +3,7 @@ import { formatInTimeZone } from 'date-fns-tz'
 // Some webpack pipelines (Chromatic for ours) fails with the default export, but works with /dist export.
 // Due to not recognizing export from the package's package.json.
 // See https://github.com/sindresorhus/p-queue/issues/145
-import PQueue from 'p-queue/dist'
+import PQueue from 'p-queue'
 
 import formsgSdk from '~utils/formSdk'
 
@@ -18,11 +18,11 @@ import { CsvRecord } from '../utils/CsvRecord.class'
 
 // Fixes issue raised at https://stackoverflow.com/questions/66472945/referenceerror-refreshreg-is-not-defined
 // Something to do with babel-loader.
-if (process.env.NODE_ENV !== 'production') {
+if (import.meta.env.NODE_ENV !== 'production') {
   // eslint-disable-next-line
-  ;(global as any).$RefreshReg$ = () => {}
+  ;(globalThis as any).$RefreshReg$ = () => {}
   // eslint-disable-next-line
-  ;(global as any).$RefreshSig$ = () => () => {}
+  ;(globalThis as any).$RefreshSig$ = () => () => {}
 }
 
 const queue = new PQueue({ concurrency: 1 })

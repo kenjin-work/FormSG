@@ -19,9 +19,9 @@ const formsgSdk = formsgPackage({
   // Either the sdk mode is set in REACT_APP_FORMSG_SDK_MODE env var, or fall back to NODE_ENV
   // NODE_ENV is set automatically to development (when using npm start),
   // test (when using npm test) or production (when using npm build)
-  mode: isPackageMode(process.env.REACT_APP_FORMSG_SDK_MODE)
-    ? process.env.REACT_APP_FORMSG_SDK_MODE
-    : process.env.NODE_ENV,
+  mode: isPackageMode(import.meta.env.VITE_FORMSG_SDK_MODE)
+    ? import.meta.env.VITE_FORMSG_SDK_MODE
+    : import.meta.env.NODE_ENV,
   verificationOptions: {
     transactionExpiry: TRANSACTION_EXPIRE_AFTER_SECONDS,
   },

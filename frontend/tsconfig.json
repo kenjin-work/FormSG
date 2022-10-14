@@ -23,7 +23,15 @@
     "downlevelIteration": true
   },
   "include": [
-    "src/**/*",
-    ".storybook/**/*"
+    "src",
+    ".storybook"
+  ],
+  "exclude": [
+    "src/**/*.test.ts"
+  ],
+  "references": [
+    {
+      "path": "./tsconfig.node.json"
+    }
   ]
 }
