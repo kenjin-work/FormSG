@@ -57,6 +57,7 @@ const baseSchema: DateFieldSchema = {
     selectedDateValidation: null,
   },
   invalidDays: [],
+  allowPublicHolidays: true,
   title: 'Date field snapshot',
   description: '',
   required: true,

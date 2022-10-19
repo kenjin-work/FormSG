@@ -35,6 +35,11 @@ const createDateFieldSchema = () => {
       ],
       enum: [...Object.values(InvalidDaysOptions)],
     },
+    allowPublicHolidays: {
+      type: Boolean,
+      required: true,
+      default: true,
+    },
   })
 }
 

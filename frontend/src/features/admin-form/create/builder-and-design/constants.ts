@@ -89,6 +89,7 @@ export const MYINFO_DATEFIELD_META: MyInfoFieldMeta<DateFieldBase> = {
     customMinDate: null,
     selectedDateValidation: null,
   },
+  allowPublicHolidays: true,
 }
 
 export const CREATE_MYINFO_PERSONAL_FIELDS_ORDERED =

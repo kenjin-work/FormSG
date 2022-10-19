@@ -20,6 +20,7 @@ const DEFAULT_DATE_FIELD: DateFieldBase = {
     customMinDate: null,
   },
   invalidDays: [],
+  allowPublicHolidays: true,
   required: true,
   disabled: false,
   fieldType: BasicField.Date,

@@ -214,6 +214,7 @@ export const MOCK_FORM_FIELDS: FormFieldDto[] = [
       customMaxDate: null,
       selectedDateValidation: null,
     },
+    allowPublicHolidays: true,
     title: 'Date',
     description: '',
     required: true,

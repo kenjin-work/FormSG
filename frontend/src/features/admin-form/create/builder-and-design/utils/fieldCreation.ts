@@ -174,6 +174,7 @@ export const getFieldCreationMeta = (fieldType: BasicField): FieldCreateDto => {
           customMinDate: null,
           selectedDateValidation: null,
         },
+        allowPublicHolidays: true,
       }
     }
     case BasicField.Table: {

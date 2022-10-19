@@ -154,6 +154,7 @@ export const generateDefaultField = (
       return {
         ...defaultParams,
         invalidDays: [],
+        allowPublicHolidays: true,
         ...customParams,
       } as IDateFieldSchema
     default:

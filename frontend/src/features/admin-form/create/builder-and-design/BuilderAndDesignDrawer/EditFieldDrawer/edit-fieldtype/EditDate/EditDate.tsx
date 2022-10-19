@@ -74,6 +74,7 @@ type EditDateInputs = Pick<
   }
   hasInvalidDays: boolean
   invalidDays: NonNullable<DateFieldBase['invalidDays']>
+  allowPublicHolidays: boolean
 }
 
 const transformDateFieldToEditForm = (field: DateFieldBase): EditDateInputs => {
@@ -105,6 +106,7 @@ const transformDateFieldToEditForm = (field: DateFieldBase): EditDateInputs => {
     dateValidation: nextValidationOptions,
     hasInvalidDays: nextHasInvalidDaysRestriction,
     invalidDays: nextInvalidDayOptions,
+    allowPublicHolidays: field.allowPublicHolidays,
   }
 }
 
@@ -310,7 +312,7 @@ export const EditDate = ({ field }: EditDateProps): JSX.Element => {
         <FormControl>
           <Toggle
             {...register('hasInvalidDays')}
-            label="Customise available days"
+            label="Customise available days and public holidays"
           />
         </FormControl>
         {hasInvalidDaysRestriction && (
@@ -375,6 +377,13 @@ export const EditDate = ({ field }: EditDateProps): JSX.Element => {
           </FormControl>
         )}
       </Stack>
+      <FormControl>
+        <Toggle
+          {...register('allowPublicHolidays')}
+          label="Public holidays"
+          description="Dates are available for the next 2 years, and may be modified by the Ministry of Manpower"
+        />
+      </FormControl>
       <FormFieldDrawerActions
         isLoading={isLoading}
         buttonText={buttonText}

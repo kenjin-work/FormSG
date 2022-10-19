@@ -27,4 +27,5 @@ export interface DateFieldBase extends MyInfoableFieldBase {
   fieldType: BasicField.Date
   dateValidation: DateValidationOptions
   invalidDays?: InvalidDaysOptions[]
+  allowPublicHolidays: boolean
 }
