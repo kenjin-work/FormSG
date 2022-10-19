@@ -89,7 +89,8 @@ const transformDateFieldToEditForm = (field: DateFieldBase): EditDateInputs => {
       : null,
   }
 
-  const nextHasInvalidDaysRestriction = !!field?.invalidDays?.length
+  const nextHasInvalidDaysRestriction =
+    !!field.invalidDays?.length || field.allowPublicHolidays
 
   /** Transformation is done because the invalid days array supplied from the server
    * to the checkbox group should be unchecked instead of checked. Hence instead of
@@ -316,74 +317,77 @@ export const EditDate = ({ field }: EditDateProps): JSX.Element => {
           />
         </FormControl>
         {hasInvalidDaysRestriction && (
-          <FormControl isRequired isInvalid={!!errors.invalidDays}>
-            <Controller
-              control={control}
-              name="invalidDays"
-              rules={{
-                required: 'Please select available days of the week',
-                validate: (val) => {
-                  const customMinDate = getValues(
-                    'dateValidation.customMinDate',
-                  )
-                  const customMaxDate = getValues(
-                    'dateValidation.customMaxDate',
-                  )
+          <>
+            <FormControl isRequired isInvalid={!!errors.invalidDays}>
+              <Controller
+                control={control}
+                name="invalidDays"
+                rules={{
+                  required: 'Please select available days of the week',
+                  validate: (val) => {
+                    const customMinDate = getValues(
+                      'dateValidation.customMinDate',
+                    )
+                    const customMaxDate = getValues(
+                      'dateValidation.customMaxDate',
+                    )
 
-                  return (
-                    !(
-                      getValues('dateValidation.selectedDateValidation') ===
-                        DateSelectedValidation.Custom &&
-                      customMinDate &&
-                      customMaxDate
-                    ) ||
-                    hasAvailableDates(
-                      customMinDate,
-                      customMaxDate,
-                      getRemainingDaysOfTheWeek(val),
-                    ) ||
-                    "The selected days aren't available within your custom date range"
-                  )
-                },
-              }}
-              render={({ field: { ref, ...field } }) => (
-                <CheckboxGroup
-                  {...field}
-                  defaultValue={Object.values(InvalidDaysOptions)}
-                >
-                  <Wrap spacing="0.75rem">
-                    {INVALID_DAYS_OPTIONS.map((invalidDayOption, index) => (
-                      <WrapItem
-                        key={invalidDayOption}
-                        minW="9.75rem"
-                        maxW="21.25rem"
-                      >
-                        <Checkbox
+                    return (
+                      !(
+                        getValues('dateValidation.selectedDateValidation') ===
+                          DateSelectedValidation.Custom &&
+                        customMinDate &&
+                        customMaxDate
+                      ) ||
+                      hasAvailableDates(
+                        customMinDate,
+                        customMaxDate,
+                        getRemainingDaysOfTheWeek(val),
+                      ) ||
+                      "The selected days aren't available within your custom date range"
+                    )
+                  },
+                }}
+                render={({ field: { ref, ...field } }) => (
+                  <CheckboxGroup
+                    {...field}
+                    defaultValue={Object.values(InvalidDaysOptions)}
+                  >
+                    <Wrap spacing="0.75rem">
+                      {INVALID_DAYS_OPTIONS.map((invalidDayOption, index) => (
+                        <WrapItem
                           key={invalidDayOption}
-                          value={invalidDayOption}
-                          ref={index === 0 ? ref : null}
+                          minW="9.75rem"
+                          maxW="21.25rem"
                         >
-                          {invalidDayOption}
-                        </Checkbox>
-                      </WrapItem>
-                    ))}
-                  </Wrap>
-                </CheckboxGroup>
-              )}
-            />
-            <FormErrorMessage>
-              {get(errors, 'invalidDays.message')}
-            </FormErrorMessage>
-          </FormControl>
+                          <Checkbox
+                            key={invalidDayOption}
+                            value={invalidDayOption}
+                            ref={index === 0 ? ref : null}
+                          >
+                            {invalidDayOption}
+                          </Checkbox>
+                        </WrapItem>
+                      ))}
+                    </Wrap>
+                  </CheckboxGroup>
+                )}
+              />
+              <FormErrorMessage>
+                {get(errors, 'invalidDays.message')}
+              </FormErrorMessage>
+            </FormControl>
+            <FormControl>
+              <Toggle
+                containerStyles={{ marginTop: '1rem' }}
+                {...register('allowPublicHolidays')}
+                label="Public holidays"
+                description="Dates are available for the next 2 years, and may be modified by the Ministry of Manpower"
+              />
+            </FormControl>
+          </>
         )}
       </Stack>
-      <FormControl>
-        <Toggle
-          {...register('allowPublicHolidays')}
-          label="Public holidays"
-          description="Dates are available for the next 2 years, and may be modified by the Ministry of Manpower"
-        />
-      </FormControl>
       <FormFieldDrawerActions
         isLoading={isLoading}
         buttonText={buttonText}
