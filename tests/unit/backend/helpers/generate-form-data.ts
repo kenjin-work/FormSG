@@ -26,6 +26,7 @@ import {
 } from 'src/types'
 
 import {
+  AllowMyInfoBase,
   AttachmentSize,
   BasicField,
   CheckboxResponse,
@@ -164,11 +165,17 @@ export const generateDefaultField = (
   }
 }
 
-export const generateProcessedSingleAnswerResponse = (
-  field: FormFieldSchema,
+export const generateProcessedSingleAnswerResponse = ({
+  field,
   answer = 'answer',
-  signature?: string,
-): ProcessedSingleAnswerResponse => {
+  signature,
+  myInfo,
+}: {
+  field: FormFieldSchema
+  answer: string
+  signature?: string
+  myInfo?: AllowMyInfoBase['myInfo']
+}): ProcessedSingleAnswerResponse => {
   if (
     [BasicField.Attachment, BasicField.Table, BasicField.Checkbox].includes(
       field.fieldType,
@@ -185,6 +192,7 @@ export const generateProcessedSingleAnswerResponse = (
     fieldType: field.fieldType,
     isVisible: true,
     signature,
+    myInfo,
   } as ProcessedSingleAnswerResponse
 }
 
@@ -307,7 +315,7 @@ export const generateTableResponse = (
           rowAnswer.push(col.fieldOptions[0])
       }
     })
-    answerArray = Array(field.minimumRows).fill(rowAnswer)
+    answerArray = Array(field.minimumRows || 0).fill(rowAnswer)
   }
   return {
     _id: field._id,

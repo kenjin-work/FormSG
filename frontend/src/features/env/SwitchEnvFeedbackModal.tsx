@@ -14,8 +14,9 @@ import {
   Stack,
   useBreakpointValue,
 } from '@chakra-ui/react'
+import { datadogRum } from '@datadog/browser-rum'
 
-import { switchEnvFeedbackFormBodyDto } from '~shared/types'
+import { SwitchEnvFeedbackFormBodyDto } from '~shared/types'
 
 import { useIsMobile } from '~hooks/useIsMobile'
 import Button from '~components/Button'
@@ -25,17 +26,18 @@ import Textarea from '~components/Textarea'
 
 import { useUser } from '~features/user/queries'
 
-import { useEnvMutations } from './mutations'
-import { useSwitchEnvFeedbackFormView } from './queries'
-
 export interface SwitchEnvModalProps {
   isOpen: boolean
   onClose: () => void
+  onSubmitFeedback: (formInputs: SwitchEnvFeedbackFormBodyDto) => Promise<any>
+  onChangeEnv: () => void
 }
 
 export const SwitchEnvFeedbackModal = ({
   isOpen,
   onClose,
+  onChangeEnv,
+  onSubmitFeedback,
 }: SwitchEnvModalProps): JSX.Element => {
   const modalSize = useBreakpointValue({
     base: 'mobile',
@@ -44,31 +46,16 @@ export const SwitchEnvFeedbackModal = ({
   })
   const isMobile = useIsMobile()
 
-  const { register, handleSubmit } = useForm<switchEnvFeedbackFormBodyDto>()
+  const { register, handleSubmit } = useForm<SwitchEnvFeedbackFormBodyDto>()
   const initialRef = useRef(null)
 
   const { user } = useUser()
   const url = window.location.href
+  const rumSessionId = datadogRum.getInternalContext()?.session_id
   const [showThanksPage, setShowThanksPage] = useState<boolean>(false)
 
-  // get the feedback form data
-  const { data: feedbackForm } = useSwitchEnvFeedbackFormView(isOpen)
-
-  const {
-    submitSwitchEnvFormFeedbackMutation,
-    adminSwitchEnvMutation,
-    publicSwitchEnvMutation,
-  } = useEnvMutations(feedbackForm)
-
-  const submitFeedback = useCallback(
-    (formInputs: switchEnvFeedbackFormBodyDto) => {
-      return submitSwitchEnvFormFeedbackMutation.mutateAsync(formInputs)
-    },
-    [submitSwitchEnvFormFeedbackMutation],
-  )
-
   const handleFormSubmit = handleSubmit((inputs) => {
-    submitFeedback(inputs)
+    onSubmitFeedback(inputs)
     setShowThanksPage(true)
   })
 
@@ -76,6 +63,12 @@ export const SwitchEnvFeedbackModal = ({
     onClose()
     setShowThanksPage(false)
   }
+
+  const handleChangeEnv = useCallback(() => {
+    onChangeEnv()
+    onClose()
+    setShowThanksPage(false)
+  }, [onChangeEnv, onClose])
 
   return (
     <Modal
@@ -110,16 +103,7 @@ export const SwitchEnvFeedbackModal = ({
                 >
                   No, don’t switch
                 </Button>
-                <Button
-                  isFullWidth={isMobile}
-                  onClick={() => {
-                    user
-                      ? adminSwitchEnvMutation.mutate()
-                      : publicSwitchEnvMutation.mutate()
-                    onClose()
-                    setShowThanksPage(false)
-                  }}
-                >
+                <Button isFullWidth={isMobile} onClick={handleChangeEnv}>
                   Yes, please
                 </Button>
               </Stack>
@@ -153,6 +137,15 @@ export const SwitchEnvFeedbackModal = ({
                       type="hidden"
                       {...register('email')}
                       value={user.email}
+                    />
+                  </FormControl>
+                ) : null}
+                {rumSessionId ? (
+                  <FormControl>
+                    <Input
+                      type="hidden"
+                      {...register('rumSessionId')}
+                      value={`https://app.datadoghq.com/rum/replay/sessions/${rumSessionId}`}
                     />
                   </FormControl>
                 ) : null}
