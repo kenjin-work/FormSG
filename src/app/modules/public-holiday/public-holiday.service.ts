@@ -13,8 +13,7 @@ const logger = createLoggerWithLabel(module)
 /**
  * Returns all public holidays
  *
- * @param formId the form id to retrieve feedback counts for
- * @returns ok(form feedback count)
+ * @returns ok(public holidays)
  * @returns err(DatabaseError) if database query errors
  */
 export const getPublicHolidays = (): ResultAsync<
@@ -34,6 +33,12 @@ export const getPublicHolidays = (): ResultAsync<
   })
 }
 
+/**
+ * Deletes all existing public holidays and inserts the supplied public holidays
+ * @param publicHolidays Public holidays to insert
+ * @returns ok
+ * @returns err(DatabaseError) if database query errors
+ */
 export const replacePublicHolidays = (
   publicHolidays: PublicHolidayDto[],
 ): ResultAsync<PublicHolidayDto[], DatabaseError> => {
