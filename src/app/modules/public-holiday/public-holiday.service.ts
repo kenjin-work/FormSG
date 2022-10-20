@@ -33,3 +33,27 @@ export const getPublicHolidays = (): ResultAsync<
     return new DatabaseError(getMongoErrorMessage(error))
   })
 }
+
+export const replacePublicHolidays = (
+  publicHolidays: PublicHolidayDto[],
+): ResultAsync<PublicHolidayDto[], DatabaseError> => {
+  return ResultAsync.fromPromise(
+    mongoose.startSession().then((session) =>
+      session.withTransaction(async () => {
+        await PublicHolidayModel.deleteMany()
+        await PublicHolidayModel.create(publicHolidays)
+      }),
+    ),
+    (error) => {
+      logger.error({
+        message: 'Error replacing public holiday documents in database',
+        meta: {
+          action: 'replacePublicHolidays',
+        },
+        error,
+      })
+
+      return new DatabaseError(getMongoErrorMessage(error))
+    },
+  )
+}

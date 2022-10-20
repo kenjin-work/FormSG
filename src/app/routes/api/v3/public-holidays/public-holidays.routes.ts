@@ -5,3 +5,7 @@ import * as PublicHolidayController from '../../../../modules/public-holiday/pub
 export const PublicHolidaysRouter = Router()
 
 PublicHolidaysRouter.get('/', PublicHolidayController.handleGetPublicHolidays)
+PublicHolidaysRouter.post(
+  '/',
+  PublicHolidayController.handleReplacePublicHolidays,
+)

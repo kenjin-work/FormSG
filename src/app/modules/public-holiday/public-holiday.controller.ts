@@ -18,3 +18,19 @@ export const handleGetPublicHolidays: ControllerHandler<
     res.status(StatusCodes.OK).json(publicHolidays),
   )
 }
+
+/**
+ * Handler for POST /public-holidays
+ * @returns 200 if they were replaced successfully
+ * @returns 500 if database error occurs or if the type of error is unknown
+ */
+export const handleReplacePublicHolidays: ControllerHandler<
+  never,
+  unknown,
+  PublicHolidayDto[]
+> = (req, res) => {
+  const publicHolidays = req.body
+  return PublicHolidayService.replacePublicHolidays(publicHolidays).map(() =>
+    res.status(StatusCodes.OK).json(),
+  )
+}
