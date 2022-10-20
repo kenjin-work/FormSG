@@ -44,6 +44,7 @@ describe('models.fields.dateField', () => {
         customMaxDate: null,
         customMinDate: null,
       },
+      allowPublicHolidays: true,
     }
     const expectedDateField: Partial<DateFieldBase> = {
       dateValidation: {
@@ -51,6 +52,7 @@ describe('models.fields.dateField', () => {
         customMaxDate: null,
         customMinDate: null,
       },
+      allowPublicHolidays: true,
       invalidDays: [],
     }
 
@@ -80,6 +82,7 @@ describe('models.fields.dateField', () => {
         customMaxDate: null,
         customMinDate: null,
       },
+      allowPublicHolidays: true,
       invalidDays: mockInvalidDays,
     }
     const expectedDateField: Partial<DateFieldBase> = {
@@ -88,6 +91,7 @@ describe('models.fields.dateField', () => {
         customMaxDate: null,
         customMinDate: null,
       },
+      allowPublicHolidays: true,
       invalidDays: mockInvalidDays,
     }
 
