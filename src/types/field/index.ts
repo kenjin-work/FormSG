@@ -3,6 +3,7 @@ import type { ConditionalExcept, Merge } from 'type-fest'
 
 import type { IAttachmentFieldSchema } from './attachmentField'
 import type { ICheckboxFieldSchema } from './checkboxField'
+import type { ICountryRegionFieldSchema } from './countryRegionField'
 import type { IDateFieldSchema } from './dateField'
 import type { IDecimalFieldSchema } from './decimalField'
 import type { IDropdownFieldSchema } from './dropdownField'
