@@ -83,6 +83,7 @@ export const AdminSwitchEnvMessage = (): JSX.Element => {
         onChangeEnv={adminSwitchEnvMutation.mutate}
         isOpen={isOpen}
         onClose={onClose}
+        isAdminView={true}
       />
     </>
   ) : (

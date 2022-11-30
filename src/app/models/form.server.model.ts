@@ -164,10 +164,6 @@ const compileFormModel = (db: Mongoose): IFormModel => {
     {
       title: {
         type: String,
-        validate: [
-          /^[a-zA-Z0-9_\-./() &`;'"]*$/,
-          'Form name cannot contain special characters',
-        ],
         required: 'Form name cannot be blank',
         minlength: [4, 'Form name must be at least 4 characters'],
         maxlength: [200, 'Form name can have a maximum of 200 characters'],
@@ -270,6 +266,8 @@ const compileFormModel = (db: Mongoose): IFormModel => {
               type: String,
               trim: true,
               required: true,
+              // Set email to lowercase for consistency
+              set: (v: string) => v.toLowerCase(),
             },
             write: {
               type: Boolean,
@@ -737,7 +735,10 @@ const compileFormModel = (db: Mongoose): IFormModel => {
     return (
       this.find()
         // List forms when either the user is an admin or collaborator.
-        .or([{ 'permissionList.email': userEmail }, { admin: userId }])
+        .or([
+          { 'permissionList.email': userEmail.toLowerCase() },
+          { admin: userId },
+        ])
         // Filter out archived forms.
         .where('status')
         .ne(FormStatus.Archived)

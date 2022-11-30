@@ -5,6 +5,7 @@ import { Flex, Portal, useDisclosure } from '@chakra-ui/react'
 
 import { SwitchEnvFeedbackFormBodyDto } from '~shared/types'
 
+import { noPrintCss } from '~utils/noPrintCss'
 import IconButton from '~components/IconButton'
 import Tooltip from '~components/Tooltip'
 
@@ -42,7 +43,13 @@ export const SwitchEnvIcon = (): JSX.Element | null => {
 
   return (
     <Portal>
-      <Flex position="fixed" bottom="2.75rem" right="2.75rem" cursor="pointer">
+      <Flex
+        position="fixed"
+        bottom="2.75rem"
+        right="2.75rem"
+        cursor="pointer"
+        sx={noPrintCss}
+      >
         <Tooltip placement="left" label="Have feedback?">
           <IconButton
             variant="outline"
@@ -57,6 +64,7 @@ export const SwitchEnvIcon = (): JSX.Element | null => {
           onChangeEnv={adminSwitchEnvMutation.mutate}
           isOpen={isOpen}
           onClose={onClose}
+          isAdminView={true}
         />
       </Flex>
     </Portal>

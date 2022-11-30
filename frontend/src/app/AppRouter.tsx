@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react'
-import { Route, Routes } from 'react-router-dom'
+import { Navigate, Route, Routes } from 'react-router-dom'
 import { Box } from '@chakra-ui/react'
 
 import {
@@ -7,6 +7,7 @@ import {
   ADMINFORM_RESULTS_SUBROUTE,
   ADMINFORM_ROUTE,
   ADMINFORM_SETTINGS_SUBROUTE,
+  ADMINFORM_USETEMPLATE_ROUTE,
   BILLING_ROUTE,
   DASHBOARD_ROUTE,
   LANDING_ROUTE,
@@ -15,8 +16,10 @@ import {
   PUBLICFORM_ROUTE,
   RESULTS_FEEDBACK_SUBROUTE,
   TOU_ROUTE,
+  USE_TEMPLATE_REDIRECT_SUBROUTE,
 } from '~constants/routes'
 import { fillHeightCss } from '~utils/fillHeightCss'
+import { lazyRetry } from '~utils/lazyRetry'
 
 import NotFoundErrorPage from '~pages/NotFoundError'
 import { AdminFormLayout } from '~features/admin-form/common/AdminFormLayout'
@@ -35,15 +38,23 @@ import { HashRouterElement } from './HashRouterElement'
 import { PrivateElement } from './PrivateElement'
 import { PublicElement } from './PublicElement'
 
-const PublicFormPage = lazy(
-  () => import('~features/public-form/PublicFormPage'),
+const UseTemplateRedirectPage = lazy(() => import('~pages/UseTemplateRedirect'))
+const PublicFormPage = lazy(() =>
+  lazyRetry(() => import('~features/public-form/PublicFormPage')),
 )
-const WorkspacePage = lazy(() => import('~features/workspace'))
-const LandingPage = lazy(() => import('~pages/Landing'))
-const LoginPage = lazy(() => import('~features/login'))
-const PrivacyPolicyPage = lazy(() => import('~pages/PrivacyPolicy'))
-const TermsOfUsePage = lazy(() => import('~pages/TermsOfUse'))
-const PreviewFormPage = lazy(() => import('~features/admin-form/preview'))
+const WorkspacePage = lazy(() => lazyRetry(() => import('~features/workspace')))
+const LandingPage = lazy(() => lazyRetry(() => import('~pages/Landing')))
+const LoginPage = lazy(() => lazyRetry(() => import('~features/login')))
+const PrivacyPolicyPage = lazy(() =>
+  lazyRetry(() => import('~pages/PrivacyPolicy')),
+)
+const TermsOfUsePage = lazy(() => lazyRetry(() => import('~pages/TermsOfUse')))
+const PreviewFormPage = lazy(() =>
+  lazyRetry(() => import('~features/admin-form/preview')),
+)
+const TemplateFormPage = lazy(() =>
+  lazyRetry(() => import('~features/admin-form/template')),
+)
 
 const WithSuspense = ({ children }: { children: React.ReactNode }) => (
   <Suspense fallback={<Box bg="neutral.100" css={fillHeightCss} w="100vw" />}>
@@ -79,10 +90,16 @@ export const AppRouter = (): JSX.Element => {
           path={BILLING_ROUTE}
           element={<PrivateElement element={<BillingPage />} />}
         />
-        <Route
-          path={PUBLICFORM_ROUTE}
-          element={<PublicElement element={<PublicFormPage />} />}
-        />
+        <Route path={PUBLICFORM_ROUTE}>
+          <Route
+            index
+            element={<PublicElement element={<PublicFormPage />} />}
+          />
+          <Route
+            path={USE_TEMPLATE_REDIRECT_SUBROUTE}
+            element={<PublicElement element={<UseTemplateRedirectPage />} />}
+          />
+        </Route>
         <Route
           path={`${ADMINFORM_ROUTE}/:formId`}
           element={<PrivateElement element={<AdminFormLayout />} />}
@@ -112,6 +129,10 @@ export const AppRouter = (): JSX.Element => {
         <Route
           path={`${ADMINFORM_ROUTE}/:formId/${ADMINFORM_PREVIEW_ROUTE}`}
           element={<PrivateElement element={<PreviewFormPage />} />}
+        />
+        <Route
+          path={`${ADMINFORM_ROUTE}/:formId/${ADMINFORM_USETEMPLATE_ROUTE}`}
+          element={<PrivateElement element={<TemplateFormPage />} />}
         />
         <Route path="*" element={<NotFoundErrorPage />} />
       </Routes>
