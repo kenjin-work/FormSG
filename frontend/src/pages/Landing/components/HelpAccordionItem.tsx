@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, PropsWithChildren } from 'react'
 import {
   AccordionButton,
   AccordionIcon,
@@ -7,7 +7,7 @@ import {
   Text,
 } from '@chakra-ui/react'
 
-interface HelpAccordionItemProps {
+interface HelpAccordionItemProps extends PropsWithChildren {
   title: string
 }
 

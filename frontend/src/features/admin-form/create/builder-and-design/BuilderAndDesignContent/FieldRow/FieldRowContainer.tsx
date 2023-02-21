@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef } from 'react'
 import { Draggable } from 'react-beautiful-dnd'
 import { FormProvider, useForm } from 'react-hook-form'
 import { BiCog, BiDuplicate, BiGridHorizontal, BiTrash } from 'react-icons/bi'
-import { useIsMutating } from 'react-query'
 import {
   Box,
   ButtonGroup,
@@ -12,6 +11,7 @@ import {
   Flex,
   Icon,
 } from '@chakra-ui/react'
+import { useIsMutating } from '@tanstack/react-query'
 import { times } from 'lodash'
 
 import { FormColorTheme } from '~shared/types'

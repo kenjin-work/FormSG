@@ -1,4 +1,4 @@
-import { FC } from 'react'
+import { FC, PropsWithChildren } from 'react'
 import {
   Box,
   Container,
@@ -30,7 +30,7 @@ const SectionListItem: FC<ListItemProps> = ({
   </ListItem>
 )
 
-const SectionParagraph: FC = ({ children }) => (
+const SectionParagraph: FC<PropsWithChildren> = ({ children }) => (
   <Text mb="1.5rem">{children}</Text>
 )
 
