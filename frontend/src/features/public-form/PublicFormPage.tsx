@@ -18,6 +18,9 @@ export const PublicFormPage = (): JSX.Element => {
   const { formId } = useParams()
   if (!formId) throw new Error('No formId provided')
 
+  // Test polyfill
+  console.log('testPadEnd'.padEnd(20, '-'))
+
   return (
     <PublicFormProvider formId={formId}>
       <FormSectionsProvider>
