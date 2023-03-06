@@ -78,7 +78,7 @@ export type Config = {
   // Consts
   isDev: boolean
   nodeEnv: Environment
-  localDev: boolean
+  isLocalDev: boolean
   port: number
   sessionSecret: string
   chromiumBin: string
