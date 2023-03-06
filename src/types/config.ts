@@ -78,6 +78,7 @@ export type Config = {
   // Consts
   isDev: boolean
   nodeEnv: Environment
+  localDev: boolean
   port: number
   sessionSecret: string
   chromiumBin: string
@@ -151,6 +152,7 @@ export interface IOptionalVarsSchema {
     otpLifeSpan: number
     submissionsTopUp: number
     nodeEnv: Environment
+    localDev: boolean
   }
   banner: {
     isGeneralMaintenance: string
