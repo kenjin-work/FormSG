@@ -78,7 +78,7 @@ export type Config = {
   // Consts
   isDev: boolean
   nodeEnv: Environment
-  isLocalDev: boolean
+  useMockTwilio: boolean
   port: number
   sessionSecret: string
   chromiumBin: string
@@ -152,7 +152,7 @@ export interface IOptionalVarsSchema {
     otpLifeSpan: number
     submissionsTopUp: number
     nodeEnv: Environment
-    localDev: boolean
+    useMockTwilio: boolean
   }
   banner: {
     isGeneralMaintenance: string
