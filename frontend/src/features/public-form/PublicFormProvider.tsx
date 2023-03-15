@@ -14,6 +14,7 @@ import { differenceInMilliseconds, isPast } from 'date-fns'
 import get from 'lodash/get'
 import simplur from 'simplur'
 
+import { BasicField } from '~shared/types'
 import {
   FormAuthType,
   FormResponseMode,
@@ -205,6 +206,25 @@ export const PublicFormProvider = ({
         return showErrorToast(error, form)
       }
 
+      const countryRegionFieldIds = new Set(
+        form.form_fields
+          .filter((field) => field.fieldType == BasicField.CountryRegion)
+          .map((field) => field._id),
+      )
+      const formInputsWithCountryRegionInUpperCase = Object.keys(
+        formInputs,
+      ).reduce((newFormInputs: any, fieldId) => {
+        if (
+          countryRegionFieldIds.has(fieldId) &&
+          (formInputs[fieldId] as string)
+        ) {
+          newFormInputs[fieldId] = formInputs[fieldId].toString().toUpperCase()
+        } else {
+          newFormInputs[fieldId] = formInputs[fieldId]
+        }
+        return newFormInputs
+      }, {})
+
       switch (form.responseMode) {
         case FormResponseMode.Email:
           // Using mutateAsync so react-hook-form goes into loading state.
@@ -214,7 +234,7 @@ export const PublicFormProvider = ({
                 {
                   formFields: form.form_fields,
                   formLogics: form.form_logics,
-                  formInputs,
+                  formInputs: formInputsWithCountryRegionInUpperCase,
                   captchaResponse,
                 },
                 {
@@ -251,7 +271,7 @@ export const PublicFormProvider = ({
                 {
                   formFields: form.form_fields,
                   formLogics: form.form_logics,
-                  formInputs,
+                  formInputs: formInputsWithCountryRegionInUpperCase,
                   publicKey: form.publicKey,
                   captchaResponse,
                 },
