@@ -1,33 +1,20 @@
-import { useCallback, useMemo } from 'react'
+import { useMemo } from 'react'
 import { Droppable } from 'react-beautiful-dnd'
 import { Box, Flex, FlexProps, Skeleton, Stack } from '@chakra-ui/react'
-
-import Button from '~components/Button'
 
 import { getVisibleFieldIds } from '~features/logic/utils'
 import { useBgColor } from '~features/public-form/components/PublicFormWrapper'
 
-import { useCreatePageSidebar } from '../../common/CreatePageSidebarContext'
-import {
-  EndPageState,
-  setToEditingEndPageSelector,
-  stateSelector as endPageStateSelector,
-  useEndPageStore,
-} from '../../end-page/useEndPageStore'
 import { useAdminFormLogic } from '../../logic/hooks/useAdminFormLogic'
 import { FIELD_LIST_DROP_ID } from '../constants'
 import { DndPlaceholderProps } from '../types'
-import { isDirtySelector, useDirtyFieldStore } from '../useDirtyFieldStore'
-import {
-  setToInactiveSelector,
-  useFieldBuilderStore,
-} from '../useFieldBuilderStore'
 import { useDesignColorTheme } from '../utils/useDesignColorTheme'
 
 import { EmptyFormPlaceholder } from './BuilderAndDesignPlaceholder/EmptyFormPlaceholder'
 import { FormBuilderFieldsSkeleton } from './FormBuilder/FormBuilderFieldsSkeleton'
 import BuilderAndDesignPlaceholder from './BuilderAndDesignPlaceholder'
 import { BuilderFields } from './BuilderFields'
+import { EndEditButton } from './EndEditButton'
 import { StartPageView } from './StartPageView'
 import { useBuilderFields } from './useBuilderFields'
 
@@ -39,20 +26,9 @@ export const FormBuilder = ({
   placeholderProps,
   ...props
 }: FormBuilderProps): JSX.Element => {
+  console.log('FormBuilder')
   const { builderFields, isLoading } = useBuilderFields()
   const { formLogics } = useAdminFormLogic()
-  const { handleBuilderClick, handleEndpageClick } = useCreatePageSidebar()
-  const setToInactive = useFieldBuilderStore(setToInactiveSelector)
-  const isDirty = useDirtyFieldStore(isDirtySelector)
-  const { endPageState, setEditingEndPageState } = useEndPageStore(
-    useCallback(
-      (state) => ({
-        endPageState: endPageStateSelector(state),
-        setEditingEndPageState: setToEditingEndPageSelector(state),
-      }),
-      [],
-    ),
-  )
 
   const visibleFieldIds = useMemo(
     () =>
@@ -62,31 +38,6 @@ export const FormBuilder = ({
       ),
     [builderFields, formLogics],
   )
-
-  const handlePlaceholderClick = useCallback(
-    () => handleBuilderClick(false),
-    [handleBuilderClick],
-  )
-
-  const isDirtyAndEndPageInactive = useMemo(
-    () => isDirty && endPageState === EndPageState.Inactive,
-    [endPageState, isDirty],
-  )
-
-  const handleEditEndPageClick = useCallback(() => {
-    if (isDirtyAndEndPageInactive) {
-      return setEditingEndPageState(true)
-    }
-
-    setEditingEndPageState()
-    setToInactive()
-    handleEndpageClick(false)
-  }, [
-    handleEndpageClick,
-    isDirtyAndEndPageInactive,
-    setEditingEndPageState,
-    setToInactive,
-  ])
 
   const bg = useBgColor({ colorTheme: useDesignColorTheme() })
 
@@ -128,7 +79,11 @@ export const FormBuilder = ({
             {isLoading || !builderFields ? (
               <FormBuilderFieldsSkeleton />
             ) : (
-              <Droppable droppableId={FIELD_LIST_DROP_ID}>
+              <Droppable
+                droppableId={FIELD_LIST_DROP_ID}
+                mode="virtual"
+                renderClone={() => <></>}
+              >
                 {(provided, snapshot) =>
                   builderFields?.length ? (
                     <Box
@@ -141,6 +96,7 @@ export const FormBuilder = ({
                         visibleFieldIds={visibleFieldIds}
                         isDraggingOver={snapshot.isDraggingOver}
                       />
+
                       {provided.placeholder}
                       <BuilderAndDesignPlaceholder
                         placeholderProps={placeholderProps}
@@ -152,7 +108,6 @@ export const FormBuilder = ({
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       isDraggingOver={snapshot.isDraggingOver}
-                      onClick={handlePlaceholderClick}
                     />
                   )
                 }
@@ -167,19 +122,7 @@ export const FormBuilder = ({
           px={{ base: '1rem', md: '1.5rem', lg: '2.5rem' }}
         >
           <Skeleton isLoaded={!isLoading} mb="1.5rem" maxW="57rem" width="100%">
-            <Button
-              _hover={{ bg: 'primary.200' }}
-              py="1.5rem"
-              width="100%"
-              variant="outline"
-              borderColor="secondary.200"
-              colorScheme="secondary"
-              height="auto"
-              onClick={handleEditEndPageClick}
-              textStyle="subhead-2"
-            >
-              Customise Thank you page
-            </Button>
+            <EndEditButton />
           </Skeleton>
         </Flex>
       </Stack>

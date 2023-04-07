@@ -42,6 +42,7 @@ import {
 } from './useFieldBuilderStore'
 
 export const BuilderAndDesignTab = (): JSX.Element => {
+  console.log('BuilderAndDesignTab')
   const setToCreating = useFieldBuilderStore(updateCreateStateSelector)
   const { data } = useCreateTabForm()
 

@@ -29,6 +29,7 @@ export const BuilderAndDesignContent = ({
     return () => setFieldsToInactive()
   }, [setFieldsToInactive])
 
+  console.log('BuilderAndDesignContent')
   return (
     <Flex flex={1} overflow="auto">
       <Box w="100%">

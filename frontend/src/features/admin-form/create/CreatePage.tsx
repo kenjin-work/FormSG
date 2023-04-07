@@ -5,21 +5,17 @@ import { Flex } from '@chakra-ui/react'
 import { FEATURE_TOUR_KEY_PREFIX } from '~constants/localStorage'
 import { ADMINFORM_RESULTS_SUBROUTE, ADMINFORM_ROUTE } from '~constants/routes'
 import { useLocalStorage } from '~hooks/useLocalStorage'
-import { NavigationPrompt } from '~templates/NavigationPrompt'
 
 import { useUser } from '~features/user/queries'
 
 import { DirtyModal } from '../common/components/DirtyModal'
 import { useAdminFormCollaborators } from '../common/queries'
 
-import {
-  isDirtySelector,
-  useDirtyFieldStore,
-} from './builder-and-design/useDirtyFieldStore'
 import { CreatePageContent } from './common/CreatePageContent'
 import { CreatePageSidebar } from './common/CreatePageSidebar'
 import { CreatePageSidebarProvider } from './common/CreatePageSidebarContext'
 import { FeatureTour } from './featureTour/FeatureTour'
+import CreatePageNavigationPrompt from './CreatePageNavigationPrompt'
 
 export const CreatePage = (): JSX.Element => {
   const { formId } = useParams()
@@ -49,11 +45,10 @@ export const CreatePage = (): JSX.Element => {
     return !isLoading && !hasAdminSeenFeatureTour
   }, [isLoading, hasAdminSeenFeatureTour])
 
-  const isDirty = useDirtyFieldStore(isDirtySelector)
-
+  console.log('CreatePage')
   return (
     <>
-      <NavigationPrompt when={isDirty} />
+      <CreatePageNavigationPrompt />
       <CreatePageSidebarProvider>
         <DirtyModal />
         <Flex

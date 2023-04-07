@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 import {
   Box,
   ButtonProps,
@@ -12,16 +12,23 @@ import {
 import { BxsWidget } from '~assets/icons/BxsWidget'
 import { useIsMobile } from '~hooks/useIsMobile'
 
+import { useCreatePageSidebar } from '~features/admin-form/create/common'
+
 interface EmptyFormPlaceholderProps extends ButtonProps {
   isDraggingOver: boolean
-  onClick: () => void
 }
 
 export const EmptyFormPlaceholder = forwardRef<
   EmptyFormPlaceholderProps,
   'button'
->(({ isDraggingOver, onClick, ...props }, ref): JSX.Element => {
+>(({ isDraggingOver, ...props }, ref): JSX.Element => {
   const isMobile = useIsMobile()
+  const { handleBuilderClick } = useCreatePageSidebar()
+  const handlePlaceholderClick = useCallback(
+    () => handleBuilderClick(false),
+    [handleBuilderClick],
+  )
+  const onClick = handlePlaceholderClick
 
   const placeholderText = useMemo(() => {
     if (isDraggingOver) {
