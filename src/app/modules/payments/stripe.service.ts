@@ -161,7 +161,7 @@ export const processStripeEventWithinSession = (
   event: Stripe.Event,
   session: mongoose.ClientSession,
 ): ResultAsync<
-  void,
+  IPaymentSchema | void,
   | MalformedStripeChargeObjectError
   | PaymentNotFoundError
   | PendingSubmissionNotFoundError
@@ -240,7 +240,7 @@ export const processStripeEventWithinSession = (
               return new DatabaseError(getMongoErrorMessage(error))
             }),
           )
-          .andThen(() => okAsync(undefined))
+          .andThen(() => okAsync(payment))
       )
     },
   )
@@ -268,7 +268,7 @@ export const processStripeEvent = (
   paymentId: string,
   event: Stripe.Event,
 ): ResultAsync<
-  void,
+  IPaymentSchema | void,
   | MalformedStripeChargeObjectError
   | PaymentNotFoundError
   | PendingSubmissionNotFoundError
@@ -466,5 +466,30 @@ export const validateAccount = (
   return ResultAsync.fromPromise(
     stripe.accounts.retrieve(accountId),
     (error) => new StripeAccountError(String(error)),
+  )
+}
+
+export const getUndeliveredPaymentIntentSuccessEventsFromAccount = (
+  stripeAccountId: string,
+) => {
+  return ResultAsync.fromPromise(
+    stripe.events.list(
+      {
+        delivery_success: false,
+        types: ['payment_intent.succeeded', 'payment_intent.created'],
+      },
+      { stripeAccount: stripeAccountId },
+    ),
+    (error) => {
+      logger.error({
+        message: 'stripe.events.list called',
+        meta: {
+          action: 'getStripeEventsFromAccount',
+          stripeAccountId,
+          error,
+        },
+      })
+      return new StripeFetchError(String(error))
+    },
   )
 }

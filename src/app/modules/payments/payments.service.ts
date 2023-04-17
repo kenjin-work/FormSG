@@ -2,7 +2,7 @@ import { ObjectId } from 'mongodb'
 import mongoose from 'mongoose'
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
 
-import { PaymentStatus } from '../../../../shared/types'
+import { DateString, PaymentStatus } from '../../../../shared/types'
 import { IPaymentSchema } from '../../../types'
 import { createLoggerWithLabel } from '../../config/logger'
 import getPaymentModel from '../../models/payment.server.model'
@@ -10,7 +10,12 @@ import MailService from '../../services/mail/mail.service'
 import { getMongoErrorMessage } from '../../utils/handle-mongo-error'
 import { DatabaseError } from '../core/core.errors'
 import { retrieveFormById } from '../form/form.service'
-import { performEncryptPostSubmissionActions } from '../submission/encrypt-submission/encrypt-submission.service'
+import * as FormService from '../form/form.service'
+import * as PendingSubmissionModel from '../pending-submission/pending-submission.service'
+import {
+  checkFormIsEncryptMode,
+  performEncryptPostSubmissionActions,
+} from '../submission/encrypt-submission/encrypt-submission.service'
 import { isSubmissionEncryptMode } from '../submission/encrypt-submission/encrypt-submission.utils'
 import { PendingSubmissionNotFoundError } from '../submission/submission.errors'
 import * as SubmissionService from '../submission/submission.service'
@@ -293,4 +298,62 @@ export const findLatestSuccessfulPaymentByEmailAndFormId = (
     if (!result) return errAsync(new PaymentNotFoundError())
     return okAsync(result)
   })
+}
+
+export const findPendingPaymentsByTime = (
+  createdAfter: string,
+  createdBefore: string,
+) => {
+  const logMeta = {
+    action: 'findPaymentByTime',
+    createdAfter,
+    createdBefore,
+  }
+  return ResultAsync.fromPromise(
+    PaymentModel.getPaymentBetweenDatesByType(
+      PaymentStatus.Pending,
+      createdAfter as DateString,
+      createdBefore as DateString,
+    ),
+    (error) => {
+      logger.error({
+        message: 'Database error while starting mongoose session',
+        meta: logMeta,
+        error,
+      })
+      return new DatabaseError()
+    },
+  ).andThen((payments) =>
+    ResultAsync.combine(
+      payments.map((payment) =>
+        PendingSubmissionModel.findPendingSubmissionById(
+          payment.pendingSubmissionId,
+        )
+          .andThen((submission) =>
+            FormService.retrieveFullFormById(submission.form),
+          )
+          .andThen(checkFormIsEncryptMode) // Payment forms are encrypted
+          .andThen((form) => {
+            const stripeAccount = form.payments_channel?.target_account_id
+            return okAsync({
+              stripeAccount,
+              paymentIntentId: payment.paymentIntentId,
+              paymentId: payment._id,
+            })
+          })
+          .orElse((error) => {
+            logger.warn({
+              message: `Error when resolving stripeAccount.`,
+              meta: { ...logMeta, paymentId: payment._id },
+              error,
+            })
+            return okAsync({
+              stripeAccount: '-1',
+              paymentIntentId: payment.paymentIntentId,
+              paymentId: payment._id,
+            })
+          }),
+      ),
+    ),
+  )
 }
