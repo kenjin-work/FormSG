@@ -54,3 +54,7 @@ export type SendOtpResponseDto = {
   message: string
   otpPrefix: string
 }
+
+export type TransferOwnershipDto = {
+  email: string
+}
