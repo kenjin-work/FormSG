@@ -61,6 +61,6 @@ export type TransferOwnershipRequestDto = {
 
 export type TransferOwnershipResponseDto = {
   newOwnerEmail: string
-  successFormIds: string[]
-  failureFormIds: string[]
+  formIds: string[]
+  error: string
 }
