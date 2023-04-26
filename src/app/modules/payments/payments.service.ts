@@ -1,3 +1,4 @@
+import moment from 'moment'
 import { ObjectId } from 'mongodb'
 import mongoose from 'mongoose'
 import { errAsync, okAsync, ResultAsync } from 'neverthrow'
@@ -300,20 +301,27 @@ export const findLatestSuccessfulPaymentByEmailAndFormId = (
   })
 }
 
-export const findPendingPaymentsByTime = (
-  createdAfter: string,
-  createdBefore: string,
-) => {
+/**
+ * Retrieves payments that are in PaymentStatus.Pending satisfying X hours agos
+ * @param createdHrsAgo defaults to 72
+ * @returns
+ */
+export const findPendingPaymentsByTime = (createdHrsAgo = 72) => {
   const logMeta = {
     action: 'findPaymentByTime',
-    createdAfter,
-    createdBefore,
+    createdHrsAgo,
   }
+  const positiveHrsAgo = Math.max(createdHrsAgo, 1)
+  const threeDaysInSeconds = 60 * 60 * positiveHrsAgo * 3000
+  const _createdAfter = moment
+    .tz(Date.now() - threeDaysInSeconds, 'Asia/Singapore')
+    .startOf('day')
+    .toISOString() as DateString
+
   return ResultAsync.fromPromise(
     PaymentModel.getPaymentBetweenDatesByType(
       PaymentStatus.Pending,
-      createdAfter as DateString,
-      createdBefore as DateString,
+      _createdAfter,
     ),
     (error) => {
       logger.error({
@@ -339,6 +347,7 @@ export const findPendingPaymentsByTime = (
               stripeAccount,
               paymentIntentId: payment.paymentIntentId,
               paymentId: payment._id,
+              paymentCreationTime: payment.created,
             })
           })
           .orElse((error) => {
@@ -351,6 +360,7 @@ export const findPendingPaymentsByTime = (
               stripeAccount: '-1',
               paymentIntentId: payment.paymentIntentId,
               paymentId: payment._id,
+              paymentCreationTime: payment.created,
             })
           }),
       ),
