@@ -7,6 +7,7 @@ import { BillingsRouter } from './billings'
 import { ClientRouter } from './client'
 import { CorppassOidcRouter } from './corppass'
 import { PublicFormsRouter } from './forms'
+import { GoGovRouter } from './gogov'
 import { NotificationsRouter } from './notifications'
 import { PaymentsRouter } from './payments'
 import { SingpassOidcRouter } from './singpass'
@@ -25,3 +26,4 @@ V3Router.use('/forms', PublicFormsRouter)
 V3Router.use('/singpass', SingpassOidcRouter)
 V3Router.use('/corppass', CorppassOidcRouter)
 V3Router.use('/payments', PaymentsRouter)
+V3Router.use('/gogov', GoGovRouter)
