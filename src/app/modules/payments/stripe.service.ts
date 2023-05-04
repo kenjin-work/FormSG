@@ -231,6 +231,12 @@ export const processStripeEventWithinSession = (
               return okAsync(payment)
             }),
           )
+          // TODO: remove later
+          .andThen((v) =>
+            ResultAsync.fromSafePromise(
+              new Promise((resolve) => setTimeout(resolve, 10000)),
+            ).map(() => v),
+          )
           // Step 6. Save the payment document
           .andThen((payment) =>
             ResultAsync.fromPromise(payment.save({ session }), (error) => {
